@@ -1,5 +1,5 @@
 from dqn import DQN
-from runner import evaluate, make_env
+from utils.runner import evaluate, make_env
 
 if __name__ == "__main__":
     env = make_env()()

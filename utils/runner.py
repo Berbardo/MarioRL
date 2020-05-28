@@ -3,10 +3,10 @@ import math
 import numpy as np
 import imageio
 
-import atari_wrappers
 from nes_py.wrappers import JoypadSpace
 import gym_super_mario_bros
 from gym_super_mario_bros.actions import RIGHT_ONLY
+from utils.atari_wrappers import wrap_mario
 
 def obs_reshape(obs):
     obs = np.swapaxes(obs, -3, -1)
@@ -18,7 +18,7 @@ def make_env():
     def _make():
         env = gym_super_mario_bros.make('SuperMarioBros-1-1-v1')
         env = JoypadSpace(env, RIGHT_ONLY)
-        env = atari_wrappers.wrap_mario(env)
+        env = wrap_mario(env)
         return env
     return _make
 

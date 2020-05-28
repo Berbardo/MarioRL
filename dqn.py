@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
-from prioritized_replay import PrioritizedReplayBuffer
+from utils.prioritized_replay import PrioritizedReplayBuffer
 
 class Network(nn.Module):
     def __init__(self, in_dim: int, out_dim: int):
