@@ -1,10 +1,16 @@
 # 🕹 MarioRL
 
-A **Dueling Double Q-Network** that learns to play Super Mario Bros.
+A Reinforcement Learning agent that learns to play Super Mario Bros.
 
 ### Gif of a trained agent.
 
 ![Gif](docs/mario.gif)
+
+### Algorithms Used
+
+- **Dueling Double Q-Network**
+
+- **Proximal Policy Optimization**
 
 ## ▶ How to run MarioRL
 

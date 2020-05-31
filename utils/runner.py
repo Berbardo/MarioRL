@@ -1,11 +1,11 @@
 import time
 import math
 import numpy as np
-import imageio
 
+from gym.wrappers import Monitor
 from nes_py.wrappers import JoypadSpace
 import gym_super_mario_bros
-from gym_super_mario_bros.actions import RIGHT_ONLY
+from gym_super_mario_bros.actions import SIMPLE_MOVEMENT
 from utils.atari_wrappers import wrap_mario
 
 def obs_reshape(obs):
@@ -17,14 +17,17 @@ def obs_reshape(obs):
 def make_env():
     def _make():
         env = gym_super_mario_bros.make('SuperMarioBros-1-1-v1')
-        env = JoypadSpace(env, RIGHT_ONLY)
+        env = JoypadSpace(env, SIMPLE_MOVEMENT)
         env = wrap_mario(env)
         return env
     return _make
 
 def evaluate(agent, env, n_episodes=5, render=False, record=False):
-    images = []
     total_rewards = []
+
+    if record:
+        env = Monitor(env, './videos/', force=True)
+
     for episode in range(n_episodes):
 
         obs = env.reset()
@@ -34,7 +37,7 @@ def evaluate(agent, env, n_episodes=5, render=False, record=False):
 
         done = False
         while not done:
-            action = agent.act(obs.reshape(1, *obs.shape), True)
+            action = agent.act(obs.reshape(1, *obs.shape))
             next_obs, reward, done, _ = env.step(action[0])
             next_obs = obs_reshape(next_obs)
             obs = next_obs
@@ -43,22 +46,15 @@ def evaluate(agent, env, n_episodes=5, render=False, record=False):
             episode_length += 1
 
             if render:
-                env.render()
-            if record:
-                img = env.render(mode='rgb_array')
-                images.append(img)
-                
+                env.render()                
                 
         total_rewards.append(total_reward)
         
 #         print(f">> episode = {episode + 1} / {n_episodes}, total_reward = {total_reward:10.4f}, episode_length = {episode_length}")
         
-    if render or record:
+    if render:
         env.close()
-    
-    if record:
-        imageio.mimsave('mario.gif', [np.array(img) for i, img in enumerate(images) if i%2 == 0], fps=29)
-         
+
     return np.mean(total_rewards)
 
 def train(agent, env, total_timesteps, break_condition):
@@ -117,22 +113,22 @@ def train(agent, env, total_timesteps, break_condition):
                 agent.save_model("modelmax.pth")
                 max_return = avg_return
 
-        print(f"[{ratio:3d}% / {uptime:3d}s] timestep = {timestep}/{total_timesteps}, episode = {episode:3d}, avg_return = {avg_return:10.4f}, max_avg_return = {max_return:10.4f}, max_eval_return = {max_eval_return:10.4f}\r", end="")
-
         if timestep % 50000 == 0:
             agent.epsilon = 0.1
 
-        if timestep % 25000 == 0:
+        if timestep % 10000 == 0:
             agent.save_model("modelper.pth")
         
         if timestep % 10000 == 8:
-            eval_return = evaluate(agent, eval_env, 1, False)
+            eval_return = evaluate(agent, eval_env, 5, False)
             if eval_return >= max_eval_return:
                 max_eval_return = eval_return
                 agent.save_model("modeleval.pth")
                 if max_eval_return > break_condition:
                     print("\n")
                     return avg_total_rewards
+
+        print(f"[{ratio:3d}% / {uptime:3d}s] timestep = {timestep}/{total_timesteps}, episode = {episode:3d}, avg_return = {avg_return:10.4f}, max_avg_return = {max_return:10.4f}, max_eval_return = {max_eval_return:10.4f}\r", end="")
 
     print("\n")
     return avg_total_rewards
